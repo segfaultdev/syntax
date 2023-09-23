@@ -1,0 +1,7 @@
+Groups are parsed by expecting subgroups inside them, as in iteratively
+passing through every possible group type to expect inside.
+
+
+Espero que estés terminando cuando llegue.
+
+(Yo) (espero (que (tú) (estés terminando)) (cuando (yo) (llegue) (ahí)).
