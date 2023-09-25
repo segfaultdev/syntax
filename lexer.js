@@ -92,6 +92,11 @@ export function Lexer() {
   this.trie = new Trie();
   this.words = [];
   
+  this.state_array = [];
+  this.state_index = 0;
+  
+  this.state_stack = [];
+  
   this.push = function(word) {
     if (word.text === undefined) {
       return;
@@ -126,14 +131,39 @@ export function Lexer() {
   };
   
   this.split = function(text) {
+    this.state_array = [];
+    this.state_index = 0;
+    
     this.trie.init();
-    let array = [];
     
     for (let char of text) {
-      this.trie.next(array, char);
+      this.trie.next(this.state_array, char);
     }
     
-    this.trie.next(array, "\n");
-    return array;
+    this.trie.next(this.state_array, "\n");
+  };
+  
+  this.save = function() {
+    this.state_stack.push(this.state_index);
+  };
+  
+  this.load = function() {
+    this.state_index = this.state_stack.pop();
+  };
+  
+  this.expect = function(filter) {
+    if (this.state_index >= this.state_array.length) {
+      return undefined;
+    }
+    
+    let word = this.words[this.state_array[this.state_index]];
+    
+    if (false) {
+      /* TODO: Conditions. */
+      return undefined;
+    }
+    
+    this.state_index++;
+    return word;
   };
 }
