@@ -1,11 +1,8 @@
+import {Marker} from "./marker";
+
 export function Word(parts) {
-  const type_chars = "ARTCQDWMXPLYHNV";
-  
-  if (parts.length < 3) {
-    return;
-  }
-  
-  if (type_chars.indexOf(parts[2][0]) < 0) {
+  if (parts.length < 3 || "ARTCQDWMXPLYHNV".indexOf(parts[2][0]) < 0) {
+    this.flags = null;
     return;
   }
   
@@ -19,6 +16,24 @@ export function Word(parts) {
   this.root = parts[1];
   this.flags = parts[2];
   
+  let gender = this.flags[1];
+  let number = this.flags[2];
+  let person = this.flags[4];
+  
+  if ("fmn".indexOf(gender) < 0) {
+    gender = null;
+  }
+  
+  if ("ps".indexOf(number) < 0) {
+    number = null;
+  }
+  
+  if ("123".indexOf(person) < 0) {
+    person = null;
+  }
+  
+  this.marker = new Marker(gender, number, person);
+  
   this.match = function(word) {
     if (this.text !== word.text) {
       return false;
@@ -30,6 +45,20 @@ export function Word(parts) {
     
     if (this.to_string() !== word.to_string()) {
       return false;
+    }
+    
+    return true;
+  };
+  
+  this.match_flags = function(flags) {
+    for (let i = 0; i < this.flags.length && i < flags.length; i++) {
+      if (this.flags[i] === "-" || flags[i] === "-") {
+        continue;
+      }
+      
+      if (this.flags[i] !== flags[i]) {
+        return false;
+      }
     }
     
     return true;

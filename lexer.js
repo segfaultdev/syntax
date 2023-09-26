@@ -1,9 +1,10 @@
 import {Word} from "./word";
 
-export function TrieNode(char = "", parent = undefined) {
+export function TrieNode(char = "", parent = null) {
   this.char = char;
   this.parent = parent;
   
+  this.value = null;
   this.chars = {};
   
   this.push = function(text, value) {
@@ -29,7 +30,7 @@ export function TrieNode(char = "", parent = undefined) {
     const char = text[0];
     
     if (!(char in this.chars)) {
-      return undefined;
+      return null;
     }
     
     return this.chars[char].find(text.slice(1));
@@ -50,7 +51,7 @@ export function Trie() {
   };
   
   this.init = function() {
-    this.state_last_value = undefined;
+    this.state_last_value = null;
     this.state_node = this.root;
   };
   
@@ -58,7 +59,7 @@ export function Trie() {
     if (char in this.state_node.chars) {
       this.state_node = this.state_node.chars[char];
       
-      if (this.state_node.value !== undefined) {
+      if (this.state_node.value !== null) {
         this.state_last_value = this.state_node.value;
       }
       
@@ -70,14 +71,14 @@ export function Trie() {
     
     this.init();
     
-    if (last_value === undefined) {
+    if (last_value === null) {
       return;
     }
     
     array.push(last_value);
     let trace_text = char;
     
-    while (node !== undefined && node.value === undefined) {
+    while (node !== null && node.value === null) {
       trace_text = node.char + trace_text;
       node = node.parent;
     }
@@ -98,13 +99,13 @@ export function Lexer() {
   this.state_stack = [];
   
   this.push = function(word) {
-    if (word.text === undefined) {
+    if (word.flags === null) {
       return;
     }
     
     let index = this.trie.find(word.text);
     
-    if (index === undefined) {
+    if (index === null) {
       index = this.words.length;
       
       this.trie.push(word.text, index);
@@ -153,17 +154,49 @@ export function Lexer() {
   
   this.expect = function(filter) {
     if (this.state_index >= this.state_array.length) {
-      return undefined;
+      return null;
     }
     
-    let word = this.words[this.state_array[this.state_index]];
+    let words = this.words[this.state_array[this.state_index]];
     
-    if (false) {
-      /* TODO: Conditions. */
-      return undefined;
+    for (let word of words) {
+      if (filter.text !== undefined) {
+        if (word.text !== filter.text) {
+          continue;
+        }
+      }
+      
+      if (filter.root !== undefined) {
+        if (word.root !== filter.root) {
+          continue;
+        }
+      }
+      
+      if (filter.flags !== undefined) {
+        let valid = false;
+        
+        for (let flags of filter.flags) {
+          if (word.match_flags(flags)) {
+            valid = true;
+            break;
+          }
+        }
+        
+        if (!valid) {
+          continue;
+        }
+      }
+      
+      if (filter.marker !== undefined) {
+        if (word.marker.merge(filter.marker) === null) {
+          continue;
+        }
+      }
+      
+      this.state_index++;
+      return word;
     }
     
-    this.state_index++;
-    return word;
+    return null;
   };
 }
