@@ -43,7 +43,7 @@ export function Word(parts) {
       return false;
     }
     
-    if (this.to_string() !== word.to_string()) {
+    if (this.get_description() !== word.get_description()) {
       return false;
     }
     
@@ -65,6 +65,10 @@ export function Word(parts) {
   };
   
   this.to_string = function() {
+    return this.text;
+  };
+  
+  this.get_description = function() {
     let string = "";
     
     if (this.flags[0] === "A") {

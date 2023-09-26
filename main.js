@@ -15,7 +15,7 @@ await lexer.push_file("./corpes_mini_1000000.txt");
 
 for await (const line of console) {
   lexer.split(line);
-  parser.parse();
+  console.log(parser.parse().to_string());
   
   console.log();
 }
