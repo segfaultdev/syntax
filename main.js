@@ -2,7 +2,7 @@ import {Lexer} from "./lexer";
 import {Parser} from "./parser";
 
 let lexer = new Lexer();
-let parser = new Parser(lexer);
+let parser = new Parser();
 
 // await lexer.push_file("./frecuencia_elementos_corpes_1_0.txt");
 await lexer.push_file("./corpes_mini_1000000.txt");
@@ -28,6 +28,17 @@ Bun.serve({
     const params = url.searchParams;
     lexer.split(params.get("text") || "");
     
-    return new Response(parser.parse().to_html());
+    let options = parser.parse(lexer);
+    let string = "";
+    
+    for (let i in options) {
+      if (i > 0) {
+        string += "<br><br>";
+      }
+      
+      string += options[i].to_html();
+    }
+    
+    return new Response(string);
   },
 });

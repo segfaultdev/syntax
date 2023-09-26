@@ -89,14 +89,12 @@ export function Trie() {
   };
 }
 
-export function Lexer() {
-  this.trie = new Trie();
-  this.words = [];
+export function Lexer(lexer = {}) {
+  this.trie = lexer.trie || new Trie();
+  this.words = lexer.words || [];
   
-  this.state_array = [];
-  this.state_index = 0;
-  
-  this.state_stack = [];
+  this.state_array = lexer.state_array || [];
+  this.state_index = lexer.state_index || 0;
   
   this.push = function(word) {
     if (word.flags === null) {
@@ -144,12 +142,8 @@ export function Lexer() {
     this.trie.next(this.state_array, "\n");
   };
   
-  this.save = function() {
-    this.state_stack.push(this.state_index);
-  };
-  
-  this.load = function() {
-    this.state_index = this.state_stack.pop();
+  this.clone = function() {
+    return new Lexer(this);
   };
   
   this.expect = function(filter) {
@@ -198,5 +192,43 @@ export function Lexer() {
     }
     
     return null;
+  };
+  
+  this.maybe = function(lambdas) {
+    let array = [];
+    
+    for (let lambda of lambdas) {
+      let value = lambda(this.clone());
+      
+      if (value) {
+        if (Array.isArray(value)) {
+          array = array.concat(value);
+        } else {
+          array.push(value);
+        }
+      }
+    }
+    
+    return array;
+  };
+  
+  this.range = function(sub_array, lambda) {
+    let array = [];
+    
+    console.log(sub_array);
+    
+    for (let i = 0; i <= sub_array.length; i++) {
+      let value = lambda(this.clone(), sub_array.slice(0, i));
+      
+      if (value) {
+        if (Array.isArray(value)) {
+          array = array.concat(value);
+        } else {
+          array.push(value);
+        }
+      }
+    }
+    
+    return array;
   };
 }

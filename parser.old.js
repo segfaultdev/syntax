@@ -37,59 +37,39 @@ export function Phrase(name, marker, array) {
   }
 }
 
-export function Parser() {
-  this.determiner_complement = function(lexer, marker) {
-    return lexer.maybe([
-      function(lexer) {
-        return lexer.expect({flags: ["Q", "M"], marker: marker});
-      },
-      
-      function(lexer) {
-        return this.adjective_phrase(lexer, marker);
-      },
-      
-      function(lexer) {
-        return this.noun_phrase(lexer, marker);
-      },
-      
-      function(lexer) {
-        return this.prepositional_phrase(lexer);
-      },
-    ]);
+export function Parser(lexer) {
+  this.determiner_complement = function(marker) {
+    lexer.save();
+    let complement = lexer.expect({flags: ["Q", "M"], marker: marker});
+    
+    if (complement) {
+      return complement;
+    }
+    
+    complement = this.prepositional_phrase();
+    
+    if (complement) {
+      return complement;
+    }
+    
+    complement = this.noun_phrase(marker);
+    
+    if (complement) {
+      return complement;
+    }
+    
+    complement = this.adjective_phrase(marker);
+    
+    if (complement) {
+      return complement;
+    }
+    
+    lexer.load();
+    return null;
   };
   
-  this.determiner_phrase = function(lexer, marker = new Marker()) {
-    return lexer.range(lexer.maybe([
-      function(lexer) {
-        return lexer.expect({root: "todo", flags: ["Q"]});
-      },
-    ]), function(lexer, predeterminer_array) {
-      let flags = ["X-----d", "T", "D"];
-      
-      if (predeterminer_array.length === 0) {
-        flags = flags.concat(["W", "L"]);
-      } else {
-        marker = marker.merge(predeterminer_array[0].marker);
-      }
-      
-      return lexer.range(lexer.maybe([
-        function(lexer) {
-          return lexer.expect({flags: flags, marker: marker});
-        },
-      ]), function(lexer, determiner_array) {
-        /* TODO: Complements. */
-        
-        let array = predeterminer_array.concat(determiner_array);
-        
-        if (array.length === 0) {
-          return null;
-        }
-        
-        return new Phrase("GD", marker, array);
-      });
-    });
-    
-    /*
+  this.determiner_phrase = function(marker = new Marker()) {
+    lexer.save();
     let array = [];
     
     let predeterminer = lexer.expect({root: "todo", flags: ["Q"]});
@@ -110,10 +90,11 @@ export function Parser() {
     }
     
     while (determiner.flags[0] !== "L") {
-      let complement = this.determiner_complement(lexer, marker);
+      let complement = this.determiner_complement(marker);
       
       if (!complement) {
         if (array.length === 0) {
+          lexer.load();
           return null;
         }
         
@@ -125,23 +106,25 @@ export function Parser() {
     }
     
     return new Phrase("GD", marker, array);
-    */
   };
   
-  this.noun_phrase = function(lexer, marker = new Marker()) {
+  this.noun_phrase = function(marker = new Marker()) {
+    lexer.save();
     let noun = lexer.expect({flags: ["N", "L"], marker: marker});
     
     if (!noun) {
+      lexer.load();
       return null;
     }
     
     return new Phrase("GN", noun.marker, [noun]);
   };
   
-  this.adjective_phrase = function(lexer, marker = new Marker()) {
+  this.adjective_phrase = function(marker = new Marker()) {
     let array = [];
+    lexer.save();
     
-    let complement = this.adverbial_phrase(lexer);
+    let complement = this.adverbial_phrase();
     
     if (complement) {
       array.push(complement);
@@ -152,10 +135,11 @@ export function Parser() {
     if (adjective) {
       array.push(adjective);
     } else {
+      lexer.load();
       return null;
     }
     
-    complement = this.prepositional_phrase(lexer);
+    complement = this.prepositional_phrase();
     
     if (complement) {
       array.push(complement);
@@ -164,8 +148,9 @@ export function Parser() {
     return new Phrase("GAdj", adjective.marker, array);
   };
   
-  this.adverbial_phrase = function(lexer) {
+  this.adverbial_phrase = function() {
     let array = [];
+    lexer.save();
     
     // let complement = this.adverbial_phrase();
     let complement = null;
@@ -179,10 +164,11 @@ export function Parser() {
     if (adverb) {
       array.push(adverb);
     } else {
+      lexer.load();
       return null;
     }
     
-    complement = this.prepositional_phrase(lexer);
+    complement = this.prepositional_phrase();
     
     if (complement) {
       array.push(complement);
@@ -191,35 +177,38 @@ export function Parser() {
     return new Phrase("GAdv", new Marker(), array);
   };
   
-  this.prepositional_phrase = function(lexer) {
+  this.prepositional_phrase = function() {
+    lexer.save();
     let preposition = lexer.expect({flags: ["P"]});
     
     if (!preposition) {
+      lexer.load();
       return null;
     }
     
-    let term = this.prepositional_phrase(lexer);
+    let term = this.prepositional_phrase();
     
     if (term) {
       return new Phrase("GP", new Marker(), [preposition, term]);
     }
     
-    term = this.determiner_phrase(lexer);
+    term = this.determiner_phrase();
     
     if (term) {
       return new Phrase("GP", new Marker(), [preposition, term]);
     }
     
-    term = this.adverbial_phrase(lexer);
+    term = this.adverbial_phrase();
     
     if (term) {
       return new Phrase("GP", new Marker(), [preposition, term]);
     }
     
+    lexer.load();
     return null;
   };
   
-  this.parse = function(lexer) {
-    return this.determiner_phrase(lexer);
+  this.parse = function() {
+    return this.determiner_phrase();
   };
 }
