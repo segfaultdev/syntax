@@ -23,7 +23,43 @@ html, body, form {
 }
 
 .result-div {
+  margin: 0px;
   
+  padding: 32px;
+}
+
+table, th, td {
+  padding: 0px;
+  
+  margin-top: -1px;
+  margin-bottom: -1px;
+  margin-left: 0px;
+  margin-right: -1px;
+}
+
+table {
+  border: solid 1px #3f3f3f;
+  border-collapse: collapse;
+}
+
+th {
+  border: solid 1px #3f3f3f;
+  word-wrap: anywhere;
+  
+  width: min-content;
+  vertical-align: top;
+}
+
+td {
+  word-wrap: normal;
+  
+  width: max-content;
+  vertical-align: top;
+}
+
+span {
+  margin-left: 8px;
+  margin-right: 8px;
 }
 
 input {

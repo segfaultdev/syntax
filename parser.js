@@ -22,6 +22,19 @@ export function Phrase(name, marker, array) {
     string += ")";
     return string;
   };
+  
+  this.to_html = function() {
+    let string = "<table><tr>";
+    
+    for (let i in this.array) {
+      string += "<td>" + this.array[i].to_html() + "</td>";
+    }
+    
+    string += "</tr><tr><th colspan=\"" + this.array.length + "\">";
+    string += this.name + "</th></tr></table>";
+    
+    return string;
+  }
 }
 
 export function Parser(lexer) {

@@ -13,18 +13,9 @@ await lexer.push_file("./corpes_mini_1000000.txt");
 // let array = lexer.split("si me lo hubieras dicho, te habría ayudado.");
 // let array = lexer.split("me gusta el chocolate.");
 
-/*
-for await (const line of console) {
-  lexer.split(line);
-  console.log(parser.parse().to_string());
-  
-  console.log();
-}
-*/
-
-// el más estudioso de entre todos los alumnos de la mejor escuela en aquel país
-
 Bun.serve({
+  port: 80,
+  
   fetch: function(request) {
     const url = new URL(request.url);
     
@@ -34,6 +25,9 @@ Bun.serve({
       return new Response(Bun.file("./public/style.css"));
     }
     
-    console.log(request);
+    const params = url.searchParams;
+    lexer.split(params.get("text") || "");
+    
+    return new Response(parser.parse().to_html());
   },
 });

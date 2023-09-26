@@ -68,6 +68,10 @@ export function Word(parts) {
     return this.text;
   };
   
+  this.to_html = function() {
+    return "<span>" + this.text + "</span>";
+  };
+  
   this.get_description = function() {
     let string = "";
     
