@@ -33,6 +33,12 @@ export function Parser(lexer) {
       return complement;
     }
     
+    complement = this.prepositional_phrase();
+    
+    if (complement) {
+      return complement;
+    }
+    
     complement = this.noun_phrase(marker);
     
     if (complement) {
@@ -40,12 +46,6 @@ export function Parser(lexer) {
     }
     
     complement = this.adjective_phrase(marker);
-    
-    if (complement) {
-      return complement;
-    }
-    
-    complement = this.prepositional_phrase();
     
     if (complement) {
       return complement;
@@ -64,6 +64,7 @@ export function Parser(lexer) {
     
     if (!predeterminer) {
       flags.push("W");
+      flags.push("L");
     } else {
       marker = marker.merge(predeterminer.marker);
       array.push(predeterminer);
@@ -75,11 +76,11 @@ export function Parser(lexer) {
       array.push(determiner);
     }
     
-    while (true) {
+    while (determiner.flags[0] !== "L") {
       let complement = this.determiner_complement(marker);
       
       if (!complement) {
-        if (!predeterminer && !determiner && complements.length === 0) {
+        if (array.length === 0) {
           lexer.load();
           return null;
         }
@@ -107,11 +108,60 @@ export function Parser(lexer) {
   };
   
   this.adjective_phrase = function(marker = new Marker()) {
-    return null;
+    let array = [];
+    lexer.save();
+    
+    let complement = this.adverbial_phrase();
+    
+    if (complement) {
+      array.push(complement);
+    }
+    
+    let adjective = lexer.expect({flags: [""], marker: marker});
+    
+    if (adjective) {
+      array.push(adjective);
+    } else {
+      lexer.load();
+      return null;
+    }
+    
+    complement = this.prepositional_phrase();
+    
+    if (complement) {
+      array.push(complement);
+    }
+    
+    return new Phrase("GAdj", adjective.marker, array);
   };
   
   this.adverbial_phrase = function() {
-    return null;
+    let array = [];
+    lexer.save();
+    
+    // let complement = this.adverbial_phrase();
+    let complement = null;
+    
+    if (complement) {
+      array.push(complement);
+    }
+    
+    let adverb = lexer.expect({flags: ["R"]});
+    
+    if (adverb) {
+      array.push(adverb);
+    } else {
+      lexer.load();
+      return null;
+    }
+    
+    complement = this.prepositional_phrase();
+    
+    if (complement) {
+      array.push(complement);
+    }
+    
+    return new Phrase("GAdv", new Marker(), array);
   };
   
   this.prepositional_phrase = function() {
