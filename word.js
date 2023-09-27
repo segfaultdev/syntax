@@ -16,6 +16,8 @@ export function Word(parts) {
   this.root = parts[1];
   this.flags = parts[2];
   
+  this.frequency_count = parseInt(parts[3]);
+  
   let gender = this.flags[1];
   let number = this.flags[2];
   let person = this.flags[4];
@@ -33,6 +35,10 @@ export function Word(parts) {
   }
   
   this.marker = new Marker(gender, number, person);
+  
+  this.score = function() {
+    return Math.log2(this.frequency_count);
+  };
   
   this.match = function(word) {
     if (this.text !== word.text) {

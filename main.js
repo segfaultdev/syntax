@@ -14,7 +14,7 @@ await lexer.push_file("./corpes_mini_1000000.txt");
 // let array = lexer.split("me gusta el chocolate.");
 
 Bun.serve({
-  // port: 80,
+  port: 80,
   
   fetch: function(request) {
     const url = new URL(request.url);
@@ -31,11 +31,33 @@ Bun.serve({
     let options = parser.parse(lexer);
     let string = "";
     
+    let total_score = 0.0;
+    let min_score = null;
+    
+    let scores = [];
+    
+    for (let i in options) {
+      let score = options[i].score();
+      scores.push(score);
+      
+      if (!min_score || score < min_score) {
+        min_score = score;
+      }
+    }
+    
+    for (let i in options) {
+      scores[i] = Math.pow(scores[i] - min_score, 2.0) + 1.0;
+      total_score += scores[i];
+    }
+    
     for (let i in options) {
       if (i > 0) {
         string += "<br><br>";
       }
       
+      let rate = Math.round((scores[i] * 10000.0) / total_score) / 100.0;
+      
+      string += "Tasa de confianza: " + rate + "%<br>";
       string += options[i].to_html();
     }
     

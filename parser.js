@@ -14,8 +14,21 @@ function maybe(parse) {
   };
 }
 
-function range(parse) {
-  
+function range(parse, reset_marker = false) {
+  return function(lexer, lambda, marker) {
+    let phrases = [];
+    
+    let range_lambda = function(lexer, phrase) {
+      phrases.push(phrase);
+      lambda(lexer, phrases);
+      
+      let next_marker = (reset_marker ? new Marker() : marker);
+      parse(lexer.clone(), range_lambda, next_marker);
+    };
+    
+    lambda(lexer.clone(), phrases);
+    parse(lexer.clone(), range_lambda, marker);
+  };
 }
 
 export function Phrase(name, marker, array) {
@@ -25,7 +38,7 @@ export function Phrase(name, marker, array) {
   this.array = array;
   
   this.to_string = function() {
-    let string = this.name + "(";
+    let string = this.name + "(" + this.marker.to_string() + ")(";
     
     for (let i in this.array) {
       if (i > 0) {
@@ -61,6 +74,16 @@ export function Phrase(name, marker, array) {
   
   this.match = function(phrase) {
     return (this.to_string() === phrase.to_string());
+  };
+  
+  this.score = function() {
+    let score = 0.0;
+    
+    for (let i in this.array) {
+      score += this.array[i].score();
+    }
+    
+    return score;
   };
 }
 
@@ -99,21 +122,69 @@ export function Parser() {
             }
             
             maybe(adjective_phrase)(lexer,
-              function(lexer, adjective) {
+              function(lexer, anterior) {
                 /*
-                "A [*N [*A] [P]]"
-                "*N [*A] [P]"
-                "*A [P]"
-                "P"
+                ""
                 */
                 
-                let noun_marker = marker;
-                
-                range(noun_phrase)(lexer,
+                range(noun_phrase, true)(lexer,
                   function(lexer, nouns) {
+                    if (nouns.length === 1) {
+                      marker = marker.merge(nouns[0].marker);
+                    }
                     
+                    console.log(nouns);
+                    
+                    maybe(preposition_phrase)(lexer,
+                      function(lexer, posterior) {
+                        // predeterminer
+                        // determiner
+                        // anterior
+                        // nouns
+                        // posterior
+                        
+                        // A predeterminer can go without a determiner
+                        // if one of these conditions are met:
+                        
+                        // 1. The phrase has no complements.
+                        // 2. The predeterminer is singular, and it has
+                        //    at least a noun as a complement.
+                        
+                        if (predeterminer && !determiner &&
+                            !(nouns.length > 0 ||
+                            (!anterior && !posterior))) {
+                          return;
+                        }
+                        
+                        let array = [];
+                        
+                        if (predeterminer) {
+                          array.push(predeterminer);
+                        }
+                        
+                        if (determiner) {
+                          array.push(determiner);
+                        }
+                        
+                        if (anterior) {
+                          array.push(anterior);
+                        }
+                        
+                        array = array.concat(nouns);
+                        
+                        if (posterior) {
+                          array.push(posterior);
+                        }
+                        
+                        if (array.length === 0) {
+                          return;
+                        }
+                        
+                        lambda(lexer, new Phrase("GD", marker, array));
+                      },
+                    new Marker());
                   },
-                noun_marker);
+                marker);
               },
             marker);
             
@@ -142,7 +213,9 @@ export function Parser() {
   }
   
   function noun_phrase(lexer, lambda, marker) {
-    lexer.expect({flags: ["L", "N"], marker: marker},
+    /* TODO: Expect adjective phrases, and *only* those. */
+    
+    lexer.expect({flags: ["N"], marker: marker},
       function(lexer, word) {
         lambda(lexer, new Phrase("GN", word.marker, [word]));
       }
@@ -198,6 +271,10 @@ export function Parser() {
       }
     }
     
-    return array;
+    return array.sort(
+      function(phrase_a, phrase_b) {
+        return (phrase_b.score() - phrase_a.score());
+      }
+    );
   };
 }
