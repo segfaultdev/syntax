@@ -14,7 +14,7 @@ await lexer.push_file("./corpes_mini_1000000.txt");
 // let array = lexer.split("me gusta el chocolate.");
 
 Bun.serve({
-  port: 80,
+  // port: 80,
   
   fetch: function(request) {
     const url = new URL(request.url);

@@ -46,4 +46,54 @@ export function Marker(gender = null, number = null, person = null) {
     
     return new Marker(gender, number, person);
   };
+  
+  this.to_string = function() {
+    let string = "";
+    
+    if (this.gender || this.number || this.person) {
+      string += (this.gender || "-");
+      string += (this.number || "-");
+      string += (this.person || "-");
+    }
+    
+    return string;
+    
+    /*
+    if (this.gender) {
+      if (string.length > 0) {
+        string += ", ";
+      }
+      
+      if (this.gender === "f") {
+        string += "fem.";
+      } else if (this.gender === "m") {
+        string += "masc.";
+      } else if (this.gender === "n") {
+        string += "n.";
+      }
+    }
+    
+    if (this.number) {
+      if (string.length > 0) {
+        string += ", ";
+      }
+      
+      if (this.number === "p") {
+        string += "pl.";
+      } else if (this.number === "s") {
+        string += "sing.";
+      }
+    }
+    
+    if (this.person) {
+      if (string.length > 0) {
+        string += ", ";
+      }
+      
+      string += this.person + "ª";
+    }
+    
+    return string;
+    */
+  };
 };

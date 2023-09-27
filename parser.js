@@ -1,6 +1,22 @@
 import {Marker} from "./marker";
 
-/* GAdj GAdv GD GN GP GV */
+/* GAdj/GA GAdv/GR GD GN GP GV */
+
+/* Every parsing function (and expect), aside from returning all valid
+  resulting phrases or words as an array, may receive a lambda function
+  to further continue parsing from the end of said phrase or word.
+*/
+
+function maybe(parse) {
+  return function(lexer, lambda, marker) {
+    parse(lexer.clone(), lambda, marker);
+    lambda(lexer.clone(), null);
+  };
+}
+
+function range(parse) {
+  
+}
 
 export function Phrase(name, marker, array) {
   this.name = name;
@@ -31,195 +47,157 @@ export function Phrase(name, marker, array) {
     }
     
     string += "</tr><tr><th colspan=\"" + this.array.length + "\">";
-    string += this.name + "</th></tr></table>";
+    string += this.name;
     
+    let marker_string = this.marker.to_string();
+    
+    if (marker_string.length > 0) {
+      string += " (" + marker_string + ")";
+    }
+    
+    string += "</th></tr></table>";
     return string;
-  }
+  };
+  
+  this.match = function(phrase) {
+    return (this.to_string() === phrase.to_string());
+  };
 }
 
 export function Parser() {
-  this.determiner_complement = function(lexer, marker) {
-    return lexer.maybe([
-      function(lexer) {
-        return lexer.expect({flags: ["Q", "M"], marker: marker});
-      },
-      
-      function(lexer) {
-        return this.adjective_phrase(lexer, marker);
-      },
-      
-      function(lexer) {
-        return this.noun_phrase(lexer, marker);
-      },
-      
-      function(lexer) {
-        return this.prepositional_phrase(lexer);
-      },
-    ]);
-  };
+  function adjective_phrase(lexer, lambda, marker) {
+    
+  }
   
-  this.determiner_phrase = function(lexer, marker = new Marker()) {
-    return lexer.range(lexer.maybe([
-      function(lexer) {
-        return lexer.expect({root: "todo", flags: ["Q"]});
-      },
-    ]), function(lexer, predeterminer_array) {
-      let flags = ["X-----d", "T", "D"];
-      
-      if (predeterminer_array.length === 0) {
-        flags = flags.concat(["W", "L"]);
-      } else {
-        marker = marker.merge(predeterminer_array[0].marker);
-      }
-      
-      return lexer.range(lexer.maybe([
-        function(lexer) {
-          return lexer.expect({flags: flags, marker: marker});
-        },
-      ]), function(lexer, determiner_array) {
-        /* TODO: Complements. */
+  function adverb_phrase(lexer, lambda, marker) {
+    
+  }
+  
+  function determiner_complement(lexer, lambda, marker) {
+    lexer.expect({flags: ["M", "Q"], marker: marker}, lambda);
+    
+    adjective_phrase(lexer.clone(), lambda, marker);
+    noun_phrase(lexer.clone(), lambda, marker);
+    preposition_phrase(lexer.clone(), lambda, marker);
+  }
+  
+  function determiner_phrase(lexer, lambda, marker) {
+    lexer.maybe({root: "todo", flags: ["Q"]},
+      function(lexer, predeterminer) {
+        let flags = ["D", "T", "X-----d"];
         
-        let array = predeterminer_array.concat(determiner_array);
-        
-        if (array.length === 0) {
-          return null;
+        if (predeterminer) {
+          marker = marker.merge(predeterminer.marker);
+        } else {
+          flags = flags.concat(["L", "W"]);
         }
         
-        return new Phrase("GD", marker, array);
-      });
-    });
-    
-    /*
-    let array = [];
-    
-    let predeterminer = lexer.expect({root: "todo", flags: ["Q"]});
-    let flags = ["T", "D", "X-----d"];
-    
-    if (!predeterminer) {
-      flags.push("W");
-      flags.push("L");
-    } else {
-      marker = marker.merge(predeterminer.marker);
-      array.push(predeterminer);
-    }
-    
-    let determiner = lexer.expect({flags: flags, marker: marker});
-    
-    if (determiner) {
-      array.push(determiner);
-    }
-    
-    while (determiner.flags[0] !== "L") {
-      let complement = this.determiner_complement(lexer, marker);
-      
-      if (!complement) {
-        if (array.length === 0) {
-          return null;
-        }
-        
-        break;
+        lexer.maybe({flags: flags, marker: marker},
+          function(lexer, determiner) {
+            if (determiner) {
+              marker = marker.merge(determiner.marker);
+            }
+            
+            maybe(adjective_phrase)(lexer,
+              function(lexer, adjective) {
+                /*
+                "A [*N [*A] [P]]"
+                "*N [*A] [P]"
+                "*A [P]"
+                "P"
+                */
+                
+                let noun_marker = marker;
+                
+                range(noun_phrase)(lexer,
+                  function(lexer, nouns) {
+                    
+                  },
+                noun_marker);
+              },
+            marker);
+            
+            /*
+            let array = [];
+            
+            if (predeterminer) {
+              array.push(predeterminer);
+            }
+            
+            if (determiner) {
+              marker = marker.merge(determiner.marker);
+              array.push(determiner);
+            }
+            
+            if (array.length === 0) {
+              return;
+            }
+            
+            lambda(lexer, new Phrase("GD", marker, array));
+            */
+          }
+        );
       }
-      
-      marker = marker.merge(complement.marker);
-      array.push(complement);
-    }
-    
-    return new Phrase("GD", marker, array);
-    */
-  };
+    );
+  }
   
-  this.noun_phrase = function(lexer, marker = new Marker()) {
-    let noun = lexer.expect({flags: ["N", "L"], marker: marker});
-    
-    if (!noun) {
-      return null;
-    }
-    
-    return new Phrase("GN", noun.marker, [noun]);
-  };
+  function noun_phrase(lexer, lambda, marker) {
+    lexer.expect({flags: ["L", "N"], marker: marker},
+      function(lexer, word) {
+        lambda(lexer, new Phrase("GN", word.marker, [word]));
+      }
+    );
+  }
   
-  this.adjective_phrase = function(lexer, marker = new Marker()) {
-    let array = [];
-    
-    let complement = this.adverbial_phrase(lexer);
-    
-    if (complement) {
-      array.push(complement);
-    }
-    
-    let adjective = lexer.expect({flags: [""], marker: marker});
-    
-    if (adjective) {
-      array.push(adjective);
-    } else {
-      return null;
-    }
-    
-    complement = this.prepositional_phrase(lexer);
-    
-    if (complement) {
-      array.push(complement);
-    }
-    
-    return new Phrase("GAdj", adjective.marker, array);
-  };
+  function preposition_phrase(lexer, lambda, marker) {
+    lexer.expect({flags: ["P"]},
+      function(lexer, preposition) {
+        let in_lambda = function(lexer, complement) {
+          lambda(lexer, new Phrase("GP", new Marker(),
+            [preposition, complement]
+          ));
+        };
+        
+        adjective_phrase(lexer.clone(), in_lambda, new Marker());
+        adverb_phrase(lexer.clone(), in_lambda, new Marker());
+        determiner_phrase(lexer.clone(), in_lambda, new Marker());
+        preposition_phrase(lexer.clone(), in_lambda, new Marker());
+      }
+    );
+  }
   
-  this.adverbial_phrase = function(lexer) {
-    let array = [];
+  function verb_phrase(lexer, lambda, marker) {
     
-    // let complement = this.adverbial_phrase();
-    let complement = null;
-    
-    if (complement) {
-      array.push(complement);
-    }
-    
-    let adverb = lexer.expect({flags: ["R"]});
-    
-    if (adverb) {
-      array.push(adverb);
-    } else {
-      return null;
-    }
-    
-    complement = this.prepositional_phrase(lexer);
-    
-    if (complement) {
-      array.push(complement);
-    }
-    
-    return new Phrase("GAdv", new Marker(), array);
-  };
-  
-  this.prepositional_phrase = function(lexer) {
-    let preposition = lexer.expect({flags: ["P"]});
-    
-    if (!preposition) {
-      return null;
-    }
-    
-    let term = this.prepositional_phrase(lexer);
-    
-    if (term) {
-      return new Phrase("GP", new Marker(), [preposition, term]);
-    }
-    
-    term = this.determiner_phrase(lexer);
-    
-    if (term) {
-      return new Phrase("GP", new Marker(), [preposition, term]);
-    }
-    
-    term = this.adverbial_phrase(lexer);
-    
-    if (term) {
-      return new Phrase("GP", new Marker(), [preposition, term]);
-    }
-    
-    return null;
-  };
+  }
   
   this.parse = function(lexer) {
-    return this.determiner_phrase(lexer);
+    let array = [];
+    
+    let in_lambda = function(lexer, phrase) {
+      if (lexer.state_index === lexer.state_array.length) {
+        array.push(phrase);
+      }
+    };
+    
+    adjective_phrase(lexer.clone(), in_lambda, new Marker());
+    adverb_phrase(lexer.clone(), in_lambda, new Marker());
+    determiner_phrase(lexer.clone(), in_lambda, new Marker());
+    preposition_phrase(lexer.clone(), in_lambda, new Marker());
+    verb_phrase(lexer.clone(), in_lambda, new Marker());
+    
+    for (let i = 0; i < array.length; i++) {
+      let string = array[i].to_string();
+      
+      for (let j = i + 1; j < array.length; j++) {
+        if (array[j].to_string() !== string) {
+          continue;
+        }
+        
+        array.splice(j, 1);
+        j--;
+      }
+    }
+    
+    return array;
   };
 }

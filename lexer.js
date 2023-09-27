@@ -96,6 +96,10 @@ export function Lexer(lexer = {}) {
   this.state_array = lexer.state_array || [];
   this.state_index = lexer.state_index || 0;
   
+  this.state_stack = [];
+  this.save = function() {this.state_stack.push(this.state_index);};
+  this.load = function() {this.state_index = this.state_stack.pop();};
+  
   this.push = function(word) {
     if (word.flags === null) {
       return;
@@ -142,13 +146,16 @@ export function Lexer(lexer = {}) {
     this.trie.next(this.state_array, "\n");
   };
   
-  this.clone = function() {
-    return new Lexer(this);
+  this.clone = function(step = 0) {
+    let lexer = new Lexer(this);
+    lexer.state_index += step;
+    
+    return lexer;
   };
   
-  this.expect = function(filter) {
+  this.expect = function(filter, lambda) {
     if (this.state_index >= this.state_array.length) {
-      return null;
+      return;
     }
     
     let words = this.words[this.state_array[this.state_index]];
@@ -187,48 +194,12 @@ export function Lexer(lexer = {}) {
         }
       }
       
-      this.state_index++;
-      return word;
+      lambda(this.clone(1), word);
     }
-    
-    return null;
   };
   
-  this.maybe = function(lambdas) {
-    let array = [];
-    
-    for (let lambda of lambdas) {
-      let value = lambda(this.clone());
-      
-      if (value) {
-        if (Array.isArray(value)) {
-          array = array.concat(value);
-        } else {
-          array.push(value);
-        }
-      }
-    }
-    
-    return array;
-  };
-  
-  this.range = function(sub_array, lambda) {
-    let array = [];
-    
-    console.log(sub_array);
-    
-    for (let i = 0; i <= sub_array.length; i++) {
-      let value = lambda(this.clone(), sub_array.slice(0, i));
-      
-      if (value) {
-        if (Array.isArray(value)) {
-          array = array.concat(value);
-        } else {
-          array.push(value);
-        }
-      }
-    }
-    
-    return array;
+  this.maybe = function(filter, lambda) {
+    this.expect(filter, lambda);
+    lambda(this.clone(), null);
   };
 }
