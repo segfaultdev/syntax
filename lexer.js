@@ -89,16 +89,11 @@ export function Trie() {
   };
 }
 
-export function Lexer(lexer = {}) {
-  this.trie = lexer.trie || new Trie();
-  this.words = lexer.words || [];
+export function Lexer() {
+  this.trie = new Trie();
+  this.words = [];
   
-  this.state_array = lexer.state_array || [];
-  this.state_index = lexer.state_index || 0;
-  
-  this.state_stack = [];
-  this.save = function() {this.state_stack.push(this.state_index);};
-  this.load = function() {this.state_index = this.state_stack.pop();};
+  this.array = [];
   
   this.push = function(word) {
     if (word.flags === null) {
@@ -134,46 +129,38 @@ export function Lexer(lexer = {}) {
   };
   
   this.split = function(text) {
-    this.state_array = [];
-    this.state_index = 0;
-    
     this.trie.init();
+    this.array = [];
     
     for (let char of text) {
-      this.trie.next(this.state_array, char);
+      this.trie.next(this.array, char);
     }
     
-    this.trie.next(this.state_array, "\n");
+    this.trie.next(this.array, "\n");
   };
+}
+
+export function LexerState(lexer, index) {
+  this.lexer = lexer;
+  this.index = (index ?? 0);
   
-  this.clone = function(step = 0) {
-    let lexer = new Lexer(this);
-    lexer.state_index += step;
-    
-    return lexer;
-  };
-  
-  this.expect = function(filter, lambda) {
-    if (this.state_index >= this.state_array.length) {
-      return;
+  this.expect = function(filter) {
+    if (this.index >= this.lexer.array.length) {
+      return [];
     }
     
-    let words = this.words[this.state_array[this.state_index]];
+    let words = [];
     
-    for (let word of words) {
-      if (filter.text !== undefined) {
-        if (word.text !== filter.text) {
-          continue;
-        }
+    for (let word of this.lexer.words[this.lexer.array[this.index]]) {
+      if (filter.text && word.text !== filter.text) {
+        continue;
       }
       
-      if (filter.root !== undefined) {
-        if (word.root !== filter.root) {
-          continue;
-        }
+      if (filter.root && word.root !== filter.root) {
+        continue;
       }
       
-      if (filter.flags !== undefined) {
+      if (filter.flags) {
         let valid = false;
         
         for (let flags of filter.flags) {
@@ -188,18 +175,16 @@ export function Lexer(lexer = {}) {
         }
       }
       
-      if (filter.marker !== undefined) {
-        if (word.marker.merge(filter.marker) === null) {
-          continue;
-        }
+      if (filter.marker && !word.marker.merge(filter.marker)) {
+        continue;
       }
       
-      lambda(this.clone(1), word);
+      words.push({
+        state: new LexerState(this.lexer, this.index + 1),
+        word: word,
+      });
     }
-  };
-  
-  this.maybe = function(filter, lambda) {
-    this.expect(filter, lambda);
-    lambda(this.clone(), null);
+    
+    return words;
   };
 }

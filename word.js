@@ -71,7 +71,7 @@ export function Word(parts) {
   };
   
   this.to_string = function() {
-    return this.text;
+    return "\"" + this.text + "\"";
   };
   
   this.to_html = function() {
