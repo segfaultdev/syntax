@@ -3,8 +3,8 @@ function is_elemental(phrase) {
     return true;
   }
   
-  if (phrase.type in ["D'", "N'", "A'", "R'", "P'"]) {
-    if (phrase.left && phrase.right) {
+  if (phrase.mode === "X'" && phrase.left && phrase.right) {
+    if (["D", "P"].indexOf(phrase.left.type) < 0) {
       return false;
     }
   }
@@ -17,7 +17,7 @@ function filter_elemental(phrase) {
     return true;
   }
   
-  if (phrase.type in ["SD", "SN", "SA", "SR", "SP"]) {
+  if (phrase.mode === "SX") {
     if (!is_elemental(phrase.left)) {
       return false;
     }
@@ -38,9 +38,9 @@ export function filter(lexer, phrases) {
     .filter(phrase => phrase.state.index === lexer.array.length)
     
     // Check if specifiers are in their elemental form.
-    .filter(filter_elemental)
+    // .filter(filter_elemental)
     
-    // Check if marks ???
+    // Check if phrases with marks are lacking specifiers.
     // .filter(filter_marks)
     
     // Check whether gender and number match.
@@ -48,6 +48,9 @@ export function filter(lexer, phrases) {
     
     // Check noun and determinant phrase cases.
     // .filter(filter_???)
+    
+    // Check for determinant requirements.
+    // .fitler(filter_determinants)
     
     // Remove repeated phrases (by converting to strings).
     .filter(function(phrase) {

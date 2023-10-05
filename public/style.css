@@ -1,10 +1,6 @@
-body {
-  background: #eff7ff;
-  
-  height: 100%;
-  width: 100%;
-  
-  overflow: hidden;
+* {
+  font-family: "Slabo 13px", serif;
+  font-size: 18px;
 }
 
 html, body, form {
@@ -12,54 +8,28 @@ html, body, form {
   padding: 0px;
 }
 
+html, body {
+  width: 100vw;
+  height: 100vh;
+  
+  background: #eff7ff;
+  overflow: hidden;
+}
+
 .form-div {
-  display: flex;
   width: calc(100vw - 16px);
+  height: 32px;
   
   margin: 0px;
   padding: 8px;
   
-  box-shadow: 0px 0px 4px #0000003f;
+  box-shadow: 0px 0px 4px #0000007f;
+  display: flex;
 }
 
-.result-div {
-  margin: 0px;
-  
-  padding: 32px;
-}
-
-table, th, td {
-  padding: 0px;
-  
-  margin-top: -1px;
-  margin-bottom: -1px;
-  margin-left: 0px;
-  margin-right: -1px;
-}
-
-table {
-  border: solid 1px #3f3f3f;
-  border-collapse: collapse;
-}
-
-th {
-  border: solid 1px #3f3f3f;
-  word-wrap: anywhere;
-  
-  width: min-content;
-  vertical-align: top;
-}
-
-td {
-  word-wrap: normal;
-  
-  width: max-content;
-  vertical-align: top;
-}
-
-span {
-  margin-left: 8px;
-  margin-right: 8px;
+label {
+  margin-top: auto;
+  margin-bottom: auto;
 }
 
 input {
@@ -70,6 +40,9 @@ input {
   
   padding-left: 8px;
   padding-right: 8px;
+  
+  padding-top: 1px;
+  padding-bottom: 1px;
   
   box-shadow: 0px 0px 2px #0000003f;
   border: solid 1px #9f9f9f;
@@ -121,4 +94,44 @@ button:active {
 
   box-shadow: inset 0px 0px 2px #0000005f;
   border: solid 1px #7f7f7f;
+}
+
+.result-div {
+  width: 100vw;
+  height: calc(100vh - 48px);
+  
+  margin: 0px;
+  padding: 0px;
+  
+  overflow: scroll;
+}
+
+.result-entry-div {
+  background: #dfefff;
+  box-shadow: 0px 0px 4px #0000005f;
+  
+  margin: 32px;
+  padding: 16px;
+}
+
+.result-entry-title-span {
+  text-decoration-line: underline;
+  font-size: 24px;
+  
+  margin: 0px;
+}
+
+.phrase-word {
+  text-decoration-line: underline;
+}
+
+.word-word {
+  text-decoration-line: underline;
+}
+
+.word-line {
+  width: 40px;
+  
+  margin-left: 20px;
+  margin-right: 20px;
 }

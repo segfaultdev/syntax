@@ -1,6 +1,7 @@
 import {filter} from "./filter";
 import {Lexer, LexerState} from "./lexer";
 import {parse} from "./parser";
+import {to_html} from "./html";
 
 let lexer = new Lexer();
 
@@ -23,11 +24,12 @@ Bun.serve({
     lexer.split(params.get("text") || "");
     
     let phrases = filter(lexer, parse(new LexerState(lexer)));
+    let string = "";
     
-    for (let phrase of phrases) {
-      console.log(phrase.to_string());
+    for (let index in phrases) {
+      string += to_html(parseInt(index) + 1, phrases[index]);
     }
     
-    return new Response("hey");
+    return new Response(string);
   },
 });

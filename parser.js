@@ -24,7 +24,7 @@ funcs["D'"] = function(state, mark) {
 
 funcs["SD"] = function(state, mark) {
   return funcs["D'"](state, mark).map(
-    a => new Phrase("SD", a.state, a),
+    a => new Phrase("SD", a.state, null, a),
   );
 };
 
