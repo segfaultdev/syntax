@@ -1,3 +1,4 @@
+import {filter} from "./filter";
 import {Lexer, LexerState} from "./lexer";
 import {parse} from "./parser";
 
@@ -21,22 +22,10 @@ Bun.serve({
     const params = url.searchParams;
     lexer.split(params.get("text") || "");
     
-    let phrases = parse(new LexerState(lexer));
-    let seen = {};
+    let phrases = filter(lexer, parse(new LexerState(lexer)));
     
     for (let phrase of phrases) {
-      if (phrase.state.index < lexer.array.length) {
-        continue;
-      }
-      
-      let string = phrase.to_string();
-      
-      if (string in seen) {
-        continue;
-      }
-      
-      console.log(string);
-      seen[string] = null;
+      console.log(phrase.to_string());
     }
     
     return new Response("hey");
