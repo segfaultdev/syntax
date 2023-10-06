@@ -29,7 +29,7 @@ function get_traditional(phrase) {
     let child_string = get_traditional(child);
     
     if (string.length && child_string.length) {
-      string += " ";
+      string += "&nbsp";
     }
     
     string += child_string;
@@ -41,7 +41,17 @@ function get_traditional(phrase) {
   let name_index = names.indexOf(phrase.type);
   
   if (name_index >= 0) {
-    string = traditional_names[name_index] + " (" + string + ")";
+    string =
+      "<div class=\"phrase-outer\">" +
+        "<div class=\"phrase-inner\">" +
+          string +
+        "</div>" +
+        "<br>" +
+        "<span class=\"phrase-text\">" +
+          traditional_names[name_index] +
+        "</span>" +
+      "</div>"
+    ;
   }
   
   return string;
@@ -53,7 +63,7 @@ export function to_html(index, phrase) {
   string += "<span class=\"result-entry-title-span\">Propuesta de análisis #" + index + ":</span>";
   string += "<br><br>"
   
-  string += get_traditional(phrase);
+  string += "<div class=\"phrase-root\">" + get_traditional(phrase) + "</div>";
   string += "<br><br>"
   
   let words = get_words(phrase);

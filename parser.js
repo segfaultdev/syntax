@@ -3,7 +3,7 @@ import {Phrase, Mark} from "./phrase";
 let funcs = {};
 
 funcs["D"] = function(state) {
-  const determinant_filter = ["D", "M", "T", "Q", "W", "X-----d"];
+  const determinant_filter = ["D", "L", "M", "T", "Q", "W", "X-----d"];
   
   return state.expect({flags: determinant_filter}).map(
     a => new Phrase("D", a.state, a.word),
@@ -157,6 +157,8 @@ funcs["P'"] = function(state) {
   return funcs["P"](state)
     .map(
       a => funcs["SD"](a.state, new Mark("D", a))
+        .concat(funcs["SP"](a.state))
+        .concat(funcs["SR"](a.state))
         .map(
           b => new Phrase("P'", b.state, a, b)
         )

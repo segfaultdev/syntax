@@ -125,6 +125,41 @@ button:active {
   text-decoration-line: underline;
 }
 
+.phrase-text {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.phrase-inner {
+  flex-shrink: 1;
+  display: flex;
+  
+  justify-content: center;
+  flex-direction: row;
+  
+  border-left: 2px solid #3f3f9f;
+  border-right: 2px solid #3f3f9f;
+  border-bottom: 4px solid #3f3f9f;
+  
+  border-radius: 0px 0px 6px 6px;
+  
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.phrase-outer {
+  flex-shrink: 1;
+  display: flex;
+  
+  justify-content: flex-start;
+  flex-direction: column;
+}
+
+.phrase-root {
+  flex-shrink: 1;
+  display: flex;
+}
+
 .word-word {
   text-decoration-line: underline;
 }

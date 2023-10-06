@@ -31,14 +31,38 @@ function filter_elemental(phrase) {
 }
 
 export function filter(lexer, phrases) {
-  let seen_phrases = {};
+  let counts = [phrases.length];
   
-  return phrases
-    // Remove phrases that do not cover the whole input.
-    .filter(phrase => phrase.state.index === lexer.array.length)
+  phrases = phrases
+    // Remove phrases that do not cover the original input entirely.
+    // .filter(phrase => phrase.state.index === lexer.array.length)
+  ;
+  
+  counts.push(phrases.length);
+  
+  let single_phrases = [];
+  let seen_strings = {};
+  
+  for (let phrase of phrases) {
+    let string = phrase.to_string();
     
+    if (string in seen_strings) {
+      continue;
+    }
+    
+    single_phrases.push(phrase);
+    seen_strings[string] = single_phrases.length;
+  }
+  
+  phrases = single_phrases;
+  counts.push(phrases.length);
+  
+  phrases = phrases
     // Check if specifiers are in their elemental form.
     // .filter(filter_elemental)
+  ;
+  
+  counts.push(phrases.length);
     
     // Check if phrases with marks are lacking specifiers.
     // .filter(filter_marks)
@@ -51,17 +75,7 @@ export function filter(lexer, phrases) {
     
     // Check for determinant requirements.
     // .fitler(filter_determinants)
-    
-    // Remove repeated phrases (by converting to strings).
-    .filter(function(phrase) {
-      let string = phrase.to_string();
-      
-      if (string in seen_phrases) {
-        return false;
-      } else {
-        seen_phrases[string] = phrase;
-        return true;
-      }
-    })
-  ;
+  
+  console.log(counts);
+  return phrases;
 }
