@@ -178,6 +178,28 @@ funcs["SP"] = function(state) {
   .flat();
 };
 
+funcs["V"] = function(state) {
+  return state.expect({flags: ["V"]})
+    .map(
+      a => new Phrase("V", a.state, a.word)
+    )
+  ;
+};
+
+funcs["V'"] = function(state, mark) {
+  return funcs["V"](state)
+    .concat(mark ? [null] : [])
+    .map(
+      a => funcs["SD"](a.state, new Mark("D", a))
+        .concat(funcs["SP"](a.state))
+        .concat(funcs["SR"](a.state))
+        .map(
+          b => new Phrase("P'", b.state, a, b)
+        )
+    )
+  .flat();
+};
+
 let cache = {};
 
 for (let func_name in funcs) {

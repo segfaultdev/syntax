@@ -1,4 +1,4 @@
-export function sort(phrases) {
+export function word_sort(phrases) {
   if (!phrases.length) {
     return [];
   }
