@@ -17,8 +17,14 @@ export function Phrase(type, state, left, right) {
     this.mode = null;
   }
   
+  this.string = null;
+  
   this.to_string = function() {
-    let string = this.type + "(";
+    if (this.string) {
+      return this.string;
+    }
+    
+    let string = this.type + " (";
     
     if (this.left) {
       string += this.left.to_string();
@@ -33,6 +39,8 @@ export function Phrase(type, state, left, right) {
     }
     
     string += ")";
+    
+    this.string = string;
     return string;
   };
   

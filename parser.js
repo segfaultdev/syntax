@@ -96,7 +96,7 @@ funcs["A"] = function(state) {
 funcs["A'"] = function(state) {
   return funcs["A"](state)
     .map(
-      a => funcs["SP"](a.state, a)
+      a => funcs["SP"](a.state)
         .concat([null])
         .map(
           b => new Phrase("A'", b ? b.state : a.state, a, b)
@@ -128,7 +128,7 @@ funcs["R"] = function(state) {
 funcs["R'"] = function(state) {
   return funcs["R"](state)
     .map(
-      a => funcs["SP"](a.state, a)
+      a => funcs["SP"](a.state)
         .concat([null])
         .map(
           b => new Phrase("R'", b ? b.state : a.state, a, b)
@@ -178,7 +178,32 @@ funcs["SP"] = function(state) {
   .flat();
 };
 
+let cache = {};
+
+for (let func_name in funcs) {
+  let func = funcs[func_name];
+  
+  funcs[func_name] = function(state, mark = null) {
+    let string = func_name + " " + state.index;
+    
+    if (mark) {
+      string += " " + mark.phrase.to_string();
+    }
+    
+    if (string in cache) {
+      return cache[string];
+    }
+    
+    let phrase = func(state, mark);
+    
+    cache[string] = phrase;
+    return phrase;
+  };
+}
+
 export function parse(state) {
+  cache = {};
+  
   return funcs["SD"](state)
     .concat(funcs["SN"](state))
     .concat(funcs["SA"](state))

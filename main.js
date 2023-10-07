@@ -22,7 +22,11 @@ Bun.serve({
     }
     
     const params = url.searchParams;
-    lexer.split(params.get("text") || "");
+    const text_input = (params.get("text") ?? "");
+    
+    
+    console.log(text_input);
+    lexer.split(text_input);
     
     let phrases = sort(filter(lexer, parse(new LexerState(lexer))));
     let string = "";
@@ -31,6 +35,7 @@ Bun.serve({
       string += to_html(parseInt(index) + 1, phrases[index]);
     }
     
+    console.log("  -> " + phrases.length + " results generated.");
     return new Response(string);
   },
 });

@@ -14,7 +14,7 @@
   </head>
   
   <body>
-    <form hx-get="api/analizar" hx-target=".result-div">
+    <form hx-get="api/analizar" hx-target=".result-div" hx-indicator=".query-indicator">
       <div class="form-div">
         <label for="text">Sintagma u oración:&nbsp&nbsp</label>
         <input type="text" id="text" name="text"></input>
@@ -22,6 +22,64 @@
       </div>
     </form>
     
-    <div class="result-div"></div>
+    <div class="result-div query-indicator"></div>
+    <div class="wait-div query-indicator">
+      <div class="wait-centered-div">
+        <div class="phrase-outer">
+          <div class="phrase-inner wait-animated time-5">
+            <div class="phrase-outer">
+              <div class="phrase-inner wait-animated time-1">
+                <span class="wait-phrase-word">
+                  Su
+                </span>
+                &nbsp
+                <span class="wait-phrase-word">
+                  análisis
+                </span>
+              </div>
+              <span class="phrase-text wait-animated time-1">
+                G. N.
+              </span>
+            </div>
+            &nbsp
+            <div class="phrase-outer">
+              <div class="phrase-inner wait-animated time-4">
+                <span class="wait-phrase-word">
+                  está
+                </span>
+                &nbsp
+                <div class="phrase-outer">
+                  <div class="phrase-inner wait-animated time-3">
+                    <span class="wait-phrase-word">
+                      en
+                    </span>
+                    &nbsp
+                    <div class="phrase-outer">
+                      <div class="phrase-inner wait-animated time-2">
+                        <span class="wait-phrase-word">
+                          proceso
+                        </span>
+                      </div>
+                      <span class="phrase-text wait-animated time-2">
+                        G. N.
+                      </span>
+                    </div>
+                  </div>
+                  <span class="phrase-text wait-animated time-3">
+                    G. Prep.
+                  </span>
+                </div>
+              </div>
+              <span class="phrase-text wait-animated time-4">
+                G. V.
+              </span>
+            </div>
+          </div>
+          <span class="phrase-text wait-animated time-5">
+            O. Simple
+          </span>
+        </div>
+      </div>
+    </div>
   </body>
 </html>

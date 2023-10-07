@@ -232,6 +232,6 @@ export function filter(lexer, phrases) {
     // Check for determinant requirements.
     // .fitler(filter_determinants)
   
-  console.log(counts);
+  // console.log(counts);
   return phrases;
 }
