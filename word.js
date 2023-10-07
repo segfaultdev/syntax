@@ -1,8 +1,6 @@
-import {Marker} from "./marker";
-
-export function Word(parts) {
+export function Word(index, parts) {
   if (parts.length < 3 || "ARTCQDWMXPLYHNV".indexOf(parts[2][0]) < 0) {
-    this.flags = null;
+    this.index = -1;
     return;
   }
   
@@ -12,33 +10,42 @@ export function Word(parts) {
     }
   */
   
+  this.index = index;
+  
   this.text = parts[0];
   this.root = parts[1];
   this.flags = parts[2];
   
   this.frequency_count = parseInt(parts[3]);
   
-  let gender = this.flags[1];
-  let number = this.flags[2];
-  let person = this.flags[4];
+  this.gender = this.flags[1];
+  this.number = this.flags[2];
+  this.person = this.flags[4];
   
-  if ("fmn".indexOf(gender) < 0) {
-    gender = null;
+  if ("fmn".indexOf(this.gender) < 0) {
+    this.gender = null;
   }
   
-  if ("ps".indexOf(number) < 0) {
-    number = null;
+  if ("ps".indexOf(this.number) < 0) {
+    this.number = null;
   }
   
-  if ("123".indexOf(person) < 0) {
-    person = null;
+  if ("123".indexOf(this.person) < 0) {
+    this.person = null;
   }
   
-  this.marker = new Marker(gender, number, person);
+  /* TODO: There must be a way to do this more cleanly, I guess... */
   
-  this.score = function() {
-    return Math.log2(this.frequency_count);
-  };
+  this.deverb = (
+    this.root.endsWith("ción") ||
+    this.root.endsWith("miento") ||
+    this.root.endsWith("mento") ||
+    this.root.endsWith("encia") ||
+    this.root.endsWith("dor") ||
+    this.root.endsWith("ido") ||
+    this.root.endsWith("ura") ||
+    this.root.endsWith("aje")
+  );
   
   this.match = function(word) {
     if (this.text !== word.text) {

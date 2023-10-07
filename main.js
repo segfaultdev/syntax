@@ -1,6 +1,7 @@
 import {filter} from "./filter";
 import {Lexer, LexerState} from "./lexer";
 import {parse} from "./parser";
+import {sort} from "./sort";
 import {to_html} from "./html";
 
 let lexer = new Lexer();
@@ -23,7 +24,7 @@ Bun.serve({
     const params = url.searchParams;
     lexer.split(params.get("text") || "");
     
-    let phrases = filter(lexer, parse(new LexerState(lexer)));
+    let phrases = sort(filter(lexer, parse(new LexerState(lexer))));
     let string = "";
     
     for (let index in phrases) {

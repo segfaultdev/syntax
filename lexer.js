@@ -94,9 +94,10 @@ export function Lexer() {
   this.words = [];
   
   this.array = [];
+  this.index = 0;
   
   this.push = function(word) {
-    if (word.flags === null) {
+    if (word.index < 0) {
       return;
     }
     
@@ -124,7 +125,9 @@ export function Lexer() {
     
     for (let line of lines) {
       const parts = line.split("\t");
-      this.push(new Word(parts));
+      
+      this.push(new Word(this.index, parts));
+      this.index++;
     }
   };
   
@@ -173,10 +176,6 @@ export function LexerState(lexer, index) {
         if (!valid) {
           continue;
         }
-      }
-      
-      if (filter.marker && !word.marker.merge(filter.marker)) {
-        continue;
       }
       
       words.push({

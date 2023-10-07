@@ -1,19 +1,5 @@
 import {Word} from "./word";
 
-function get_words(phrase) {
-  if (!phrase) {
-    return [];
-  }
-  
-  if (phrase.left instanceof Word) {
-    return [phrase.left];
-  }
-  
-  return get_words(phrase.left)
-    .concat(get_words(phrase.right))
-  ;
-}
-
 function get_traditional(phrase) {
   if (!phrase) {
     return "";
@@ -66,7 +52,7 @@ export function to_html(index, phrase) {
   string += "<div class=\"phrase-root\">" + get_traditional(phrase) + "</div>";
   string += "<br><br>"
   
-  let words = get_words(phrase);
+  let words = phrase.words();
   string += "<table>"
   
   for (let word of words) {

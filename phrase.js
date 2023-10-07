@@ -1,3 +1,5 @@
+import {Word} from "./word";
+
 export function Phrase(type, state, left, right) {
   this.type = type;
   this.state = state;
@@ -34,25 +36,22 @@ export function Phrase(type, state, left, right) {
     return string;
   };
   
-  this.to_html = function() {
-    let string = "<table><tr>";
-    let array = [this.left, this.right];
+  this.words = function() {
+    let array = [];
     
-    let valid = 0;
-    
-    for (let i in array) {
-      if (!array[i]) {
-        continue;
-      }
-      
-      string += "<td>" + array[i].to_html() + "</td>";
-      valid++;
+    if (this.left instanceof Word) {
+      array.push(this.left);
+    } else if (this.left && ("words" in this.left)) {
+      array = array.concat(this.left.words());
     }
     
-    string += "</tr><tr><td colspan=\"" + valid + "\">";
-    string += this.type + "</td></tr></table>";
+    if (this.right instanceof Word) {
+      array.push(this.right);
+    } else if (this.right && ("words" in this.right)) {
+      array = array.concat(this.right.words());
+    }
     
-    return string;
+    return array;
   };
 }
 
