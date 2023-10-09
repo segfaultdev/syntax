@@ -39,13 +39,13 @@ function filter_elemental(phrase) {
   }
   
   if (phrase.left) {
-    if (phrase.left.mode !== "SX" && !filter_elemental(phrase.left)) {
+    if ((phrase.left.mode !== "SX" || phrase.mode === "EX") && !filter_elemental(phrase.left)) {
       return false;
     }
   }
   
   if (phrase.right) {
-    if (phrase.right.mode !== "SX" && !filter_elemental(phrase.right)) {
+    if ((phrase.right.mode !== "SX" || phrase.mode === "EX") && !filter_elemental(phrase.right)) {
       return false;
     }
   }
@@ -75,13 +75,13 @@ function filter_wordful(phrase) {
   }
   
   if (phrase.left) {
-    if (phrase.left.mode !== "SX" && !filter_wordful(phrase.left)) {
+    if ((phrase.left.mode !== "SX" || phrase.mode === "EX") && !filter_wordful(phrase.left)) {
       return false;
     }
   }
   
   if (phrase.right) {
-    if (phrase.right.mode !== "SX" && !filter_wordful(phrase.right)) {
+    if ((phrase.right.mode !== "SX" || phrase.mode === "EX") && !filter_wordful(phrase.right)) {
       return false;
     }
   }
@@ -144,13 +144,13 @@ function filter_deverb(phrase) {
   }
   
   if (phrase.left) {
-    if (phrase.left.mode !== "SX" && !filter_deverb(phrase.left)) {
+    if ((phrase.left.mode !== "SX" || phrase.mode === "EX") && !filter_deverb(phrase.left)) {
       return false;
     }
   }
   
   if (phrase.right) {
-    if (phrase.right.mode !== "SX" && !filter_deverb(phrase.right)) {
+    if ((phrase.right.mode !== "SX" || phrase.mode === "EX") && !filter_deverb(phrase.right)) {
       return false;
     }
   }
@@ -201,13 +201,13 @@ function filter_gender(phrase) {
   }
   
   if (phrase.left) {
-    if (phrase.left.mode !== "SX" && !filter_gender(phrase.left)) {
+    if ((phrase.left.mode !== "SX" || phrase.mode === "EX") && !filter_gender(phrase.left)) {
       return false;
     }
   }
   
   if (phrase.right) {
-    if (phrase.right.mode !== "SX" && !filter_gender(phrase.right)) {
+    if ((phrase.right.mode !== "SX" || phrase.mode === "EX") && !filter_gender(phrase.right)) {
       return false;
     }
   }
@@ -251,13 +251,13 @@ function filter_determinant(phrase) {
   }
   
   if (phrase.left) {
-    if (phrase.left.mode !== "SX" && !filter_determinant(phrase.left)) {
+    if ((phrase.left.mode !== "SX" || phrase.mode === "EX") && !filter_determinant(phrase.left)) {
       return false;
     }
   }
   
   if (phrase.right) {
-    if (phrase.right.mode !== "SX" && !filter_determinant(phrase.right)) {
+    if ((phrase.right.mode !== "SX" || phrase.mode === "EX") && !filter_determinant(phrase.right)) {
       return false;
     }
   }
@@ -279,13 +279,13 @@ function filter_pronoun(phrase) {
   }
   
   if (phrase.left) {
-    if (phrase.left.mode !== "SX" && !filter_pronoun(phrase.left)) {
+    if ((phrase.left.mode !== "SX" || phrase.mode === "EX") && !filter_pronoun(phrase.left)) {
       return false;
     }
   }
   
   if (phrase.right) {
-    if (phrase.right.mode !== "SX" && !filter_pronoun(phrase.right)) {
+    if ((phrase.right.mode !== "SX" || phrase.mode === "EX") && !filter_pronoun(phrase.right)) {
       return false;
     }
   }
@@ -293,23 +293,95 @@ function filter_pronoun(phrase) {
   return true;
 }
 
+function get_single(phrase) {
+  if (phrase.type === "N'") {
+    if (phrase.right && phrase.right.type === "SA") {
+      return 2;
+    }
+    
+    return get_single(phrase.left) + (phrase.right ? 1 : 0);
+  }
+  
+  return 0;
+}
+
 function filter_single(phrase) {
   if (!phrase) {
     return true;
   }
   
-  /* TODO */
-  
-  if (phrase.left) {
-    if (phrase.left.mode !== "SX" && !filter_single(phrase.left)) {
-      return false;
+  if (phrase.type === "SD") {
+    if (phrase.left) {
+      return true;
     }
+    
+    return filter_single(phrase.right);
+  } else if (phrase.type === "D'") {
+    if (phrase.left.left instanceof Word) {
+      return true;
+    }
+    
+    return filter_single(phrase.right);
+  } else if (phrase.type === "SQ") {
+    return filter_single(phrase.right);
+  } else if (phrase.type === "Q'") {
+    return filter_single(phrase.right);
+  } else if (phrase.type === "SN") {
+    if (filter_single(phrase.right)) {
+      return true;
+    }
+    
+    return ((get_single(phrase.right) + (phrase.left ? 1 : 0)) === 1);
+  } else if (phrase.type === "N'") {
+    return filter_single(phrase.left);
+  } else if (phrase.type === "N") {
+    if (phrase.left instanceof Word) {
+      return true;
+    }
+    
+    if (phrase.left instanceof Mark) {
+      if (phrase.left.phrase.left instanceof Word) {
+        return true;
+      }
+    }
+    
+    return false;
   }
   
-  if (phrase.right) {
-    if (phrase.right.mode !== "SX" && !filter_single(phrase.right)) {
-      return false;
+  return true;
+}
+
+function get_adjective(phrase) {
+  if (phrase.type === "N'") {
+    if (phrase.right && phrase.right.type === "SA") {
+      return true;
     }
+    
+    return get_adjective(phrase.left);
+  }
+  
+  return false;
+}
+
+function filter_adjective(phrase) {
+  if (!phrase) {
+    return true;
+  }
+  
+  if (phrase.type === "SN") {
+    if (filter_adjective(phrase.right)) {
+      return true;
+    }
+    
+    return !get_adjective(phrase.right);
+  } else if (phrase.type === "N'") {
+    return filter_adjective(phrase.left);
+  } else if (phrase.type === "N") {
+    if (phrase.left instanceof Word) {
+      return true;
+    }
+    
+    return false;
   }
   
   return true;
@@ -360,6 +432,12 @@ export function filter_sx(phrases) {
   
   counts.push(phrases.length);
   
+  phrases = phrases
+    .filter(filter_adjective)
+  ;
+  
+  counts.push(phrases.length);
+  
   return phrases;
 }
 
@@ -369,7 +447,10 @@ export function filter_final(phrases) {
   
   for (let phrase of phrases) {
     if (phrase.state.index !== phrase.state.lexer.array.length) {
-      continue;
+      if (phrase.state.index !== phrase.state.lexer.array.length - 1 ||
+          !phrase.state.expect({text: "."}).length) {
+        continue;
+      }
     }
     
     let string = filter_repeat(phrase);

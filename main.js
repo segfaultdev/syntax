@@ -5,10 +5,12 @@ import {word_sort} from "./sort";
 
 let lexer = new Lexer();
 
-// await lexer.push_file("./frecuencia_elementos_corpes_1_0.txt");
-await lexer.push_file("./corpes_mini_1000000.txt");
+await lexer.push_file("./frecuencia_elementos_corpes_1_0.txt");
+// await lexer.push_file("./corpes_mini_1000000.txt");
 
 let verbs = JSON.parse(await Bun.file("verbs.json").text());
+
+console.log(lexer.index + " words loaded!");
 
 Bun.serve({
   port: 80,
@@ -37,9 +39,12 @@ Bun.serve({
       }
       
       console.log("  -> " + phrases.length + " results generated.");
-      return new Response(string);
-    } else {
-      return new Response("Invalid request.");
+      
+      if (phrases.length) {
+        return new Response(string);
+      }
     }
+    
+    return new Response("Ni nosotros somos capaces de analizar su solicitud. Por favor, compruebe su ortografía (las mayúsculas solo son obligatorias en nombres propios, pero se recomiendan en todo caso apropiado) e inténtelo de nuevo más tarde.");
   },
 });

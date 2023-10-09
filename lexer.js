@@ -126,6 +126,14 @@ export function Lexer() {
     for (let line of lines) {
       const parts = line.split("\t");
       
+      if (parts[0] && parts[0][0] !== parts[0][0].toUpperCase()) {
+        const upper_word = parts[0][0].toUpperCase() + parts[0].slice(1);
+        const upper_parts = [upper_word, ...parts.slice(1)];
+        
+        this.push(new Word(this.index, upper_parts));
+        this.index++;
+      }
+      
       this.push(new Word(this.index, parts));
       this.index++;
     }

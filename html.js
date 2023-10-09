@@ -160,9 +160,9 @@ export function to_html(index, phrase) {
   }
   
   string += "</table>";
-  string += "<br><br>";
+  // string += "<br><br>";
   
-  string += "<div class=\"phrase-root\">" + get_true(phrase) + "</div>";
+  // string += "<div class=\"phrase-root\">" + get_true(phrase) + "</div>";
   // string += "<br><br>"
   
   string += "</div>";
