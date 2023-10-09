@@ -157,6 +157,19 @@ button:active {
   padding-right: 4px;
 }
 
+.phrase-marker {
+  flex-shrink: 1;
+  display: flex;
+  
+  justify-content: center;
+  flex-direction: row;
+  
+  border-bottom: 4px solid #3f5f7f;
+  
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
 .phrase-outer {
   flex-shrink: 1;
   display: flex;

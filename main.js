@@ -2,13 +2,14 @@ import {Lexer, LexerState} from "./lexer";
 import {parse} from "./parser";
 import {to_html} from "./html";
 import {word_sort} from "./sort";
+import {push_verbs} from "./verb";
 
 let lexer = new Lexer();
 
 // await lexer.push_file("./frecuencia_elementos_corpes_1_0.txt");
-await lexer.push_file("./corpes_mini_1000000.txt");
 
-let verbs = JSON.parse(await Bun.file("verbs.json").text());
+await lexer.push_file("./corpes_mini_1000000.txt");
+await push_verbs("./verbs.json");
 
 console.log(lexer.index + " words loaded!");
 

@@ -1,4 +1,5 @@
 import {Mark} from "./phrase";
+import {test_verb} from "./verb";
 import {Word} from "./word";
 
 function get_true(phrase) {
@@ -73,19 +74,77 @@ function is_complete(phrase) {
   return false;
 }
 
-function get_traditional(phrase, parent_type) {
+function get_traditional(phrase, surname = null, parent_type = null) {
   if (!phrase) {
     return "";
   }
   
   if (phrase instanceof Word) {
-    return "<span class=\"phrase-word\">" + phrase.text + "</span>";
+    let string = "<span class=\"phrase-word\">" + phrase.text + "</span>";
+    
+    if (surname) {
+      string =
+        "<div class=\"phrase-outer\">" +
+          "<div class=\"phrase-marker\">" +
+            string +
+          "</div>" +
+          "<span class=\"phrase-text\">" +
+            surname +
+          "</span>" +
+        "</div>"
+      ;
+    }
+    
+    return string;
   }
   
+  let array = [phrase.left, phrase.right];
   let string = "";
   
-  for (let child of [phrase.left, phrase.right]) {
-    let child_string = get_traditional(child, phrase.type);
+  for (let index in array) {
+    let child_surname = null;
+    
+    if (phrase.type === "D'") {
+      if (parseInt(index) === 0) {
+        if (phrase.right) {
+          child_surname = "Det.";
+        } else {
+          child_surname = "N. (Pron.)";
+        }
+      }
+    } else if (phrase.type === "SN" || phrase.type === "SA" || phrase.type === "SR") {
+      if (array[index]) {
+        if (array[index].type === "SR") {
+          child_surname = "Mod.";
+        } else if (array[index].mode === "SX") {
+          child_surname = ({
+            N: "C. N.",
+            A: "C. Adj.",
+            R: "C. Adv.",
+          })[phrase.type[1]];
+        }
+      }
+    } else if (phrase.type === "N'" || phrase.type === "A'" || phrase.type === "R'") {
+      if (array[index]) {
+        if (array[index].mode === "X") {
+          child_surname = "N.";
+        } else if (array[index].type === "SR") {
+          child_surname = "Mod.";
+        } else if (array[index].mode === "SX") {
+          child_surname = ({
+            N: "C. N.",
+            A: "C. Adj.",
+            R: "C. Adv.",
+          })[phrase.type[0]];
+        }
+      }
+    } else if (phrase.type === "P'") {
+      child_surname = (["E.", "T."])[index];
+    } else if (phrase.mode === "X") {
+      child_surname = surname;
+    }
+    
+    let child_string = get_traditional(array[index], child_surname, phrase.type);
     
     if (string.length && child_string.length) {
       string += "&nbsp";
@@ -127,6 +186,10 @@ function get_traditional(phrase, parent_type) {
   }
   
   if (name) {
+    if (surname) {
+      name += " / " + surname;
+    }
+    
     string =
       "<div class=\"phrase-outer\">" +
         "<div class=\"phrase-inner\">" +
@@ -149,8 +212,8 @@ export function to_html(index, phrase) {
   string += "<span class=\"result-entry-title-span\">Propuesta de análisis #" + index + ":</span>";
   string += "<br><br>"
   
-  string += "<div class=\"phrase-root\">" + get_traditional(phrase, null) + "</div>";
-  string += "<br><br>"
+  string += "<div class=\"phrase-root\">" + get_traditional(phrase) + "</div>";
+  string += "<br>"
   
   let words = phrase.words();
   string += "<table>"
@@ -160,10 +223,9 @@ export function to_html(index, phrase) {
   }
   
   string += "</table>";
-  // string += "<br><br>";
+  string += "<br>";
   
-  // string += "<div class=\"phrase-root\">" + get_true(phrase) + "</div>";
-  // string += "<br><br>"
+  string += "<div class=\"phrase-root\">" + get_true(phrase) + "</div>";
   
   string += "</div>";
   return string;

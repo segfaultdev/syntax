@@ -1,4 +1,5 @@
 import {Mark} from "./phrase";
+import {test_verb} from "./verb";
 import {Word} from "./word";
 
 function match_feature(a, b) {
@@ -295,7 +296,7 @@ function filter_pronoun(phrase) {
 
 function get_single(phrase) {
   if (phrase.type === "N'") {
-    if (phrase.right && phrase.right.type === "SA") {
+    if (phrase.right && (phrase.right.type === "SA" || phrase.right.type === "EA")) {
       return 2;
     }
     
@@ -353,7 +354,7 @@ function filter_single(phrase) {
 
 function get_adjective(phrase) {
   if (phrase.type === "N'") {
-    if (phrase.right && phrase.right.type === "SA") {
+    if (phrase.right && (phrase.right.type === "SA" || phrase.right.type === "EA")) {
       return true;
     }
     
@@ -388,57 +389,16 @@ function filter_adjective(phrase) {
 }
 
 export function filter_sx(phrases) {
-  let counts = [phrases.length];
-  
-  phrases = phrases
+  return phrases
     .filter(filter_wordful)
-  ;
-  
-  counts.push(phrases.length);
-  
-  phrases = phrases
     .filter(filter_elemental)
-  ;
-  
-  counts.push(phrases.length);
-  
-  phrases = phrases
     .filter(filter_deverb)
-  ;
-  
-  counts.push(phrases.length);
-  
-  phrases = phrases
     .filter(filter_determinant)
-  ;
-  
-  counts.push(phrases.length);
-  
-  phrases = phrases
     .filter(filter_pronoun)
-  ;
-  
-  counts.push(phrases.length);
-  
-  phrases = phrases
     .filter(filter_gender)
-  ;
-  
-  counts.push(phrases.length);
-  
-  phrases = phrases
     .filter(filter_single)
-  ;
-  
-  counts.push(phrases.length);
-  
-  phrases = phrases
     .filter(filter_adjective)
   ;
-  
-  counts.push(phrases.length);
-  
-  return phrases;
 }
 
 export function filter_final(phrases) {

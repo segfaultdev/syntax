@@ -248,21 +248,25 @@ funcs["V"] = function(state, marks) {
   ;
 };
 
-/*
-funcs["V'"] = function(state, mark) {
-  return funcs["V"](state)
-    .concat(mark ? [null] : [])
+funcs["V'"] = function(state, marks) {
+  return funcs["V"](state, marks)
     .map(
-      a => funcs["SD"](a.state, new Mark("D", a))
-        .concat(funcs["SP"](a.state))
-        .concat(funcs["SR"](a.state))
+      a => [null]
+        .concat(funcs["SD"](a.state, {D: new Mark("D", a)}))
         .map(
-          b => new Phrase("P'", b.state, a, b)
+          b => new Phrase("V'", b ? b.state : a.state, a, b)
         )
     )
   .flat();
 };
-*/
+
+funcs["SV"] = function(state, marks) {
+  return funcs["V'"](state, marks)
+    .map(
+      a => new Phrase("SV", a.state, null, a)
+    )
+  ;
+};
 
 /* --- Phrase cacher (provides exponential speed boost) --- */
 
@@ -387,9 +391,9 @@ function EX(func, name) {
     return func(state, marks)
       .map(
         a => [null]
-          .concat(Ep(func, a.state, marks))
-          .concat(Epp_comma(func, a.state, marks))
-          .concat(Epp_semicolon(func, a.state, marks))
+          .concat(Ep(func, a.state, {}))
+          .concat(Epp_comma(func, a.state, {}))
+          .concat(Epp_semicolon(func, a.state, {}))
           .map(
             b => (b ?
               new Phrase("E" + name, b.state, a, b) :
@@ -433,6 +437,7 @@ export function parse(state) {
     .concat(funcs["SA"](state, {}))
     .concat(funcs["SR"](state, {}))
     .concat(funcs["SP"](state, {}))
+    .concat(funcs["SV"](state, {}))
   ;
   
   let end_time = performance.now();
