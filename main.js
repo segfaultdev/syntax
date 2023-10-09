@@ -1,4 +1,3 @@
-import {filter} from "./filter";
 import {Lexer, LexerState} from "./lexer";
 import {parse} from "./parser";
 import {to_html} from "./html";
@@ -30,7 +29,7 @@ Bun.serve({
       console.log(text_input);
       lexer.split(text_input);
       
-      let phrases = word_sort(filter(lexer, parse(new LexerState(lexer))));
+      let phrases = word_sort(parse(new LexerState(lexer)));
       let string = "";
       
       for (let index in phrases) {

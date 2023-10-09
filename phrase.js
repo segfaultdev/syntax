@@ -7,7 +7,9 @@ export function Phrase(type, state, left, right) {
   this.left = (left ?? null);
   this.right = (right ?? null);
   
-  if (this.type.length === 2 && this.type[0] === "S") {
+  if (this.type.length === 2 && this.type[0] === "E") {
+    this.mode = "EX";
+  } else if (this.type.length === 2 && this.type[0] === "S") {
     this.mode = "SX";
   } else if (this.type.length === 2 && this.type[1] === "'") {
     this.mode = "X'";
@@ -17,17 +19,11 @@ export function Phrase(type, state, left, right) {
     this.mode = null;
   }
   
-  this.string = null;
-  
   this.to_string = function() {
-    if (this.string) {
-      return this.string;
-    }
-    
     let string = this.type + " (";
     
     if (this.left) {
-      string += this.left.to_string();
+      string += this.left.string ?? this.left.to_string();
     }
     
     if (this.right) {
@@ -35,14 +31,14 @@ export function Phrase(type, state, left, right) {
         string += ", ";
       }
       
-      string += this.right.to_string();
+      string += this.right.string ?? this.right.to_string();
     }
     
     string += ")";
-    
-    this.string = string;
     return string;
   };
+  
+  this.string = this.to_string();
   
   this.words = function() {
     let array = [];

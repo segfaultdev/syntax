@@ -34,17 +34,23 @@ function filter_elemental(phrase) {
     // return false;
   }
   
-  if (phrase.mode === "SX") {
-    if (!is_elemental(phrase.left)) {
-      return false;
-    }
-  } else {
-    if (!filter_elemental(phrase.left)) {
+  if (phrase.mode === "SX" && !is_elemental(phrase.left)) {
+    return false;
+  }
+  
+  if (phrase.left) {
+    if (phrase.left.mode !== "SX" && !filter_elemental(phrase.left)) {
       return false;
     }
   }
   
-  return filter_elemental(phrase.right);
+  if (phrase.right) {
+    if (phrase.right.mode !== "SX" && !filter_elemental(phrase.right)) {
+      return false;
+    }
+  }
+  
+  return true;
 }
 
 function is_wordful(phrase) {
@@ -68,7 +74,19 @@ function filter_wordful(phrase) {
     return false;
   }
   
-  return (filter_wordful(phrase.left) && filter_wordful(phrase.right));
+  if (phrase.left) {
+    if (phrase.left.mode !== "SX" && !filter_wordful(phrase.left)) {
+      return false;
+    }
+  }
+  
+  if (phrase.right) {
+    if (phrase.right.mode !== "SX" && !filter_wordful(phrase.right)) {
+      return false;
+    }
+  }
+  
+  return true;
 }
 
 function filter_repeat(phrase) {
@@ -77,7 +95,7 @@ function filter_repeat(phrase) {
   }
   
   if (phrase instanceof Word) {
-    return "\"" + phrase.text + "\"";
+    return phrase.flags[0] + ".\"" + phrase.text + "\"";
   }
   
   let string = "";
@@ -92,13 +110,15 @@ function filter_repeat(phrase) {
     string += child_string;
   }
   
-  const names = ["SA", "SD", "SR", "SP", "SV"];
-  const traditional_names = ["G. Adj.", "G. N.", "G. Adv.", "G. Prep.", "G. V."];
+  const names = [
+    "SA", "SD", "SR", "SP", "SV",
+    "EA", "ED", "ER", "EP", "EV",
+  ];
   
   let name_index = names.indexOf(phrase.type);
   
   if (name_index >= 0) {
-    string = "(" + traditional_names[name_index] + " -> " + string + ")";
+    string = "(" + phrase.type + " -> " + string + ")";
   }
   
   return string;
@@ -123,7 +143,19 @@ function filter_deverb(phrase) {
     }
   }
   
-  return (filter_deverb(phrase.left) && filter_deverb(phrase.right));
+  if (phrase.left) {
+    if (phrase.left.mode !== "SX" && !filter_deverb(phrase.left)) {
+      return false;
+    }
+  }
+  
+  if (phrase.right) {
+    if (phrase.right.mode !== "SX" && !filter_deverb(phrase.right)) {
+      return false;
+    }
+  }
+  
+  return true;
 }
 
 function get_gender(phrase) {
@@ -143,9 +175,10 @@ function get_gender(phrase) {
     return get_gender(phrase.left);
   }
   
-  if (phrase.type === "SD" || phrase.type === "D'" ||
-      phrase.type === "SN" || phrase.type === "N'" ||
-      phrase.type === "SA" || phrase.type === "A'") {
+  if (phrase.type === "ED" || phrase.type === "SD" || phrase.type === "D'" ||
+      phrase.type === "EN" || phrase.type === "SN" || phrase.type === "N'" ||
+      phrase.type === "EA" || phrase.type === "SA" || phrase.type === "A'" ||
+      phrase.type === "E'") {
     return (get_gender(phrase.left) ?? get_gender(phrase.right));
   }
   
@@ -167,17 +200,123 @@ function filter_gender(phrase) {
     }
   }
   
-  return (filter_gender(phrase.left) && filter_gender(phrase.right));
+  if (phrase.left) {
+    if (phrase.left.mode !== "SX" && !filter_gender(phrase.left)) {
+      return false;
+    }
+  }
+  
+  if (phrase.right) {
+    if (phrase.right.mode !== "SX" && !filter_gender(phrase.right)) {
+      return false;
+    }
+  }
+  
+  return true;
 }
 
-export function filter(lexer, phrases) {
+function filter_determinant(phrase) {
+  if (!phrase) {
+    return true;
+  }
+  
+  if (phrase.type === "SD") {
+    let s_word = phrase.left ? phrase.left.right.left.left : null;
+    
+    if (s_word && s_word.root !== "todo") {
+      return false;
+    }
+    
+    if (phrase.right.left.left instanceof Word && !phrase.right.right) {
+      let n_word = phrase.right.left.left;
+      
+      if (s_word) {
+        if (n_word.flags[0] === "T") {
+          return false;
+        }
+      } else {
+        if (n_word.text === "el" || n_word.text === "un") {
+          return false;
+        }
+      }
+    }
+  }
+  
+  if (phrase.type === "Q'" && phrase.left.left instanceof Word) {
+    let word = phrase.left.left;
+    
+    if (word.root === "todo") {
+      return false;
+    }
+  }
+  
+  if (phrase.left) {
+    if (phrase.left.mode !== "SX" && !filter_determinant(phrase.left)) {
+      return false;
+    }
+  }
+  
+  if (phrase.right) {
+    if (phrase.right.mode !== "SX" && !filter_determinant(phrase.right)) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+function filter_pronoun(phrase) {
+  if (!phrase) {
+    return true;
+  }
+  
+  if (phrase.type === "D'" && phrase.left.left instanceof Word) {
+    let n_word = phrase.left.left;
+    
+    if (n_word.flags[0] === "L" && phrase.right) {
+      return false;
+    }
+  }
+  
+  if (phrase.left) {
+    if (phrase.left.mode !== "SX" && !filter_pronoun(phrase.left)) {
+      return false;
+    }
+  }
+  
+  if (phrase.right) {
+    if (phrase.right.mode !== "SX" && !filter_pronoun(phrase.right)) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+function filter_single(phrase) {
+  if (!phrase) {
+    return true;
+  }
+  
+  /* TODO */
+  
+  if (phrase.left) {
+    if (phrase.left.mode !== "SX" && !filter_single(phrase.left)) {
+      return false;
+    }
+  }
+  
+  if (phrase.right) {
+    if (phrase.right.mode !== "SX" && !filter_single(phrase.right)) {
+      return false;
+    }
+  }
+  
+  return true;
+}
+
+export function filter_sx(phrases) {
   let counts = [phrases.length];
-  
-  phrases = phrases
-    .filter(phrase => phrase.state.index === lexer.array.length)
-  ;
-  
-  counts.push(phrases.length);
   
   phrases = phrases
     .filter(filter_wordful)
@@ -198,15 +337,41 @@ export function filter(lexer, phrases) {
   counts.push(phrases.length);
   
   phrases = phrases
+    .filter(filter_determinant)
+  ;
+  
+  counts.push(phrases.length);
+  
+  phrases = phrases
+    .filter(filter_pronoun)
+  ;
+  
+  counts.push(phrases.length);
+  
+  phrases = phrases
     .filter(filter_gender)
   ;
   
   counts.push(phrases.length);
   
+  phrases = phrases
+    .filter(filter_single)
+  ;
+  
+  counts.push(phrases.length);
+  
+  return phrases;
+}
+
+export function filter_final(phrases) {
   let single_phrases = [];
   let seen_strings = {};
   
   for (let phrase of phrases) {
+    if (phrase.state.index !== phrase.state.lexer.array.length) {
+      continue;
+    }
+    
     let string = filter_repeat(phrase);
     
     if (string in seen_strings) {
@@ -217,21 +382,5 @@ export function filter(lexer, phrases) {
     seen_strings[string] = single_phrases.length;
   }
   
-  phrases = single_phrases;
-  counts.push(phrases.length);
-  
-    // Check if phrases with marks are lacking specifiers.
-    // .filter(filter_marks)
-    
-    // Check whether gender and number match.
-    // .filter(filter_???)
-    
-    // Check noun and determinant phrase cases.
-    // .filter(filter_???)
-    
-    // Check for determinant requirements.
-    // .fitler(filter_determinants)
-  
-  // console.log(counts);
-  return phrases;
+  return single_phrases;
 }
