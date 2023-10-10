@@ -1,7 +1,7 @@
 let verbs = {};
 
 export async function push_verbs(path) {
-  verbs = verbs.concat(JSON.parse(await Bun.file(path).text()));
+  verbs = {...verbs, ...JSON.parse(await Bun.file(path).text())};
 }
 
 export function test_verb(verb, type) {
